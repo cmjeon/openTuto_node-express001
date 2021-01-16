@@ -8,9 +8,11 @@ const path = require('path');
 const sanitizeHtml = require('sanitize-html');
 const qs = require('querystring');
 const bodyParser = require('body-parser')
+const compression = require('compression')
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
+app.use(compression())
 
 app.get('/', (request, response) => {
   fs.readdir('./data', function(error, filelist){

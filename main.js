@@ -7,9 +7,10 @@ const template = require('./lib/template.js');
 const path = require('path');
 const sanitizeHtml = require('sanitize-html');
 const qs = require('querystring');
-const bodyParser = require('body-parser')
-const compression = require('compression')
+const bodyParser = require('body-parser');
+const compression = require('compression');
 
+app.use(express.static('public'));
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(compression())
@@ -25,7 +26,8 @@ app.get('/', (request, response) => {
     var description = 'Hello, Node.js';
     var list = template.list(request.list);
     var html = template.HTML(title, list,
-      `<h2>${title}</h2>${description}`,
+      `<h2>${title}</h2>${description}
+      <img src="/images/hello.jpg" style="width:300px; display:block; margin-top:10px;">`,
       `<a href="/create">create</a>`
     );
     response.send(html);

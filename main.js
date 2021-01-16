@@ -7,6 +7,10 @@ const template = require('./lib/template.js');
 const path = require('path');
 const sanitizeHtml = require('sanitize-html');
 const qs = require('querystring');
+const bodyParser = require('body-parser')
+
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }))
 
 app.get('/', (request, response) => {
   fs.readdir('./data', function(error, filelist){
@@ -19,7 +23,7 @@ app.get('/', (request, response) => {
     );
     response.send(html);
   });
-})
+});
 
 app.get('/page/:pageId', (request, response) => {
   fs.readdir('./data', function(error, filelist){
@@ -43,7 +47,7 @@ app.get('/page/:pageId', (request, response) => {
       response.send(html);
     });
   });
-})
+});
 
 app.get('/create', (request, response) => {
   fs.readdir('./data', function(error, filelist){
@@ -62,23 +66,17 @@ app.get('/create', (request, response) => {
     `, '');
     response.send(html);
   });
-})
+});
 
 app.post('/create_process', (request, response) => {
-  var body = '';
-  request.on('data', function(data){
-      body = body + data;
-  });
-  request.on('end', function(){
-      var post = qs.parse(body);
-      var title = post.title;
-      var description = post.description;
-      fs.writeFile(`data/${title}`, description, 'utf8', function(err){
-        response.writeHead(302, {Location: `/?id=${title}`});
-        response.end();
-      })
-  });
-})
+  var post = request.body;
+    var title = post.title;
+    var description = post.description;
+    fs.writeFile(`data/${title}`, description, 'utf8', function(err){
+      response.writeHead(302, {Location: `/?id=${title}`});
+      response.end();
+    })
+});
 
 app.get('/update/:pageId', (request, response) => {
   fs.readdir('./data', function(error, filelist){
@@ -108,36 +106,24 @@ app.get('/update/:pageId', (request, response) => {
 });
 
 app.post('/update_process', (request, response) => {
-  var body = '';
-  request.on('data', function(data){
-      body = body + data;
-  });
-  request.on('end', function(){
-      var post = qs.parse(body);
-      var id = post.id;
-      var title = post.title;
-      var description = post.description;
-      fs.rename(`data/${id}`, `data/${title}`, function(error){
-        fs.writeFile(`data/${title}`, description, 'utf8', function(err){
-          response.redirect(`/?id=${title}`);
-        })
-      });
+  var post = request.body;
+  var id = post.id;
+  var title = post.title;
+  var description = post.description;
+  fs.rename(`data/${id}`, `data/${title}`, function(error){
+    fs.writeFile(`data/${title}`, description, 'utf8', function(err){
+      response.redirect(`/?id=${title}`);
+    })
   });
 });
 
 app.post('/delete_process', (request, response) => {
-  var body = '';
-  request.on('data', function(data){
-      body = body + data;
-  });
-  request.on('end', function(){
-      var post = qs.parse(body);
-      var id = post.id;
-      var filteredId = path.parse(id).base;
-      fs.unlink(`data/${filteredId}`, function(error){
-        response.redirect('/');
-      })
-  });
+  var post = request.body;
+  var id = post.id;
+  var filteredId = path.parse(id).base;
+  fs.unlink(`data/${filteredId}`, function(error){
+    response.redirect('/');
+  })
 });
 
 

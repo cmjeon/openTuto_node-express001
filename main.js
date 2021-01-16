@@ -33,26 +33,29 @@ app.get('/', (request, response) => {
     response.send(html);
 });
 
-app.get('/page/:pageId', (request, response) => {
-  console.log(request.list);
+app.get('/page/:pageId', (request, response, next) => {
   var filteredId = path.parse(request.params.pageId).base;
-  fs.readFile(`data/${filteredId}`, 'utf8', function(err, description){
-    var title = request.params.pageId;
-    var sanitizedTitle = sanitizeHtml(title);
-    var sanitizedDescription = sanitizeHtml(description, {
-      allowedTags:['h1']
-    });
-    var list = template.list(request.list);
-    var html = template.HTML(sanitizedTitle, list,
-      `<h2>${sanitizedTitle}</h2>${sanitizedDescription}`,
-      ` <a href="/create">create</a>
-        <a href="/update/${sanitizedTitle}">update</a>
-        <form action="/delete_process" method="post">
-          <input type="hidden" name="id" value="${sanitizedTitle}">
-          <input type="submit" value="delete">
-        </form>`
-    );
-    response.send(html);
+  fs.readFile(`data/${filteredId}`, 'utf8', (err, description) => {
+    if(err) {
+      next(err);
+    } else {
+      var title = request.params.pageId;
+      var sanitizedTitle = sanitizeHtml(title);
+      var sanitizedDescription = sanitizeHtml(description, {
+        allowedTags:['h1']
+      });
+      var list = template.list(request.list);
+      var html = template.HTML(sanitizedTitle, list,
+        `<h2>${sanitizedTitle}</h2>${sanitizedDescription}`,
+        ` <a href="/create">create</a>
+          <a href="/update/${sanitizedTitle}">update</a>
+          <form action="/delete_process" method="post">
+            <input type="hidden" name="id" value="${sanitizedTitle}">
+            <input type="submit" value="delete">
+          </form>`
+      );
+      response.send(html);
+    }
   });
 });
 
@@ -87,6 +90,7 @@ app.post('/create_process', (request, response) => {
 app.get('/update/:pageId', (request, response) => {
   var filteredId = path.parse(request.params.pageId).base;
   fs.readFile(`data/${filteredId}`, 'utf8', function(err, description){
+    if(err) {}
     var title = request.params.pageId;
     var list = template.list(request.list);
     var html = template.HTML(title, list,
@@ -130,6 +134,14 @@ app.post('/delete_process', (request, response) => {
   })
 });
 
+app.use((req, res, next) => {
+  res.status(404).send('Sorry cant find that!');
+});
+
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something broke!')
+});
 
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`)

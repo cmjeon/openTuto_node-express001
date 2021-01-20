@@ -6,6 +6,8 @@ const fs = require('fs');
 
 const bodyParser = require('body-parser');
 const compression = require('compression');
+const helmet = require('helmet');
+app.use(helmet());
 const indexRouter = require('./routes/index');
 const topicRouter = require('./routes/topic');
 
